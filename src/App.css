@@ -1,0 +1,13 @@
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+@plugin "daisyui" {
+  themes: forest, 
+  lemonade, 
+  abyss, 
+  coffee, 
+  retro, 
+  business, 
+  cupecake,
+  caramellatte,
+  night;
+}
