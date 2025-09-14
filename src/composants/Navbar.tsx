@@ -1,14 +1,15 @@
 
-import React from "react";
+// ...existing code...
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineLogout } from "react-icons/ai";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useUser } from "../context/useUser";
 function Navbar() {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const { user, logout } = useUser();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout();
     navigate("/login");
   };
   return (
@@ -32,13 +33,15 @@ function Navbar() {
         {/* Profil utilisateur à droite */}
         {user && (
           <div className="flex items-center gap-2">
-            <img
-              src={user.profileImage || "https://i.pravatar.cc/100"}
-              alt="avatar utilisateur"
-              className="w-9 h-9 rounded-full border object-cover"
-            />
+            {user.profileImage && (
+              <img
+                src={user.profileImage}
+                alt="avatar utilisateur"
+                className="w-9 h-9 rounded-full border object-cover"
+              />
+            )}
             <span className="font-medium text-base-content text-sm md:text-base whitespace-nowrap">
-              {user.firstName} {user.lastName}
+              {user.prenom} {user.nom}
             </span>
             <button
               onClick={handleLogout}

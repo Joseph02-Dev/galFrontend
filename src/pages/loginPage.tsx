@@ -1,8 +1,17 @@
+import { useUser } from "../context/useUser";
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { api } from "../api";
 
 export default function LoginPage() {
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
   // Images illustrant l'agritech
   const images = [
     '/assets/agri1.jpg',
@@ -18,23 +27,20 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [images.length]);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    // Vérification dans la liste des utilisateurs
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find((u: any) => u.email === email && u.password === password);
-
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("isAuthenticated", "true");
+    try {
+    const res = await api.post("/users/login", { email, motDePasse });
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("user", JSON.stringify(res.data.user));
+  localStorage.setItem("isAuthenticated", "true");
+  setUser(res.data.user);
       navigate("/");
-    } else {
+    } catch {
       setError("Email ou mot de passe incorrect.");
     }
   };
@@ -77,8 +83,8 @@ export default function LoginPage() {
             type="password"
             placeholder="Mot de passe"
             className="w-full border rounded px-3 py-2 text-{--color-warning}"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
             required
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}

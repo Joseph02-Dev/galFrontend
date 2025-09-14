@@ -1,14 +1,5 @@
-import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
-import { useParams } from "react-router-dom";
 
-type Message = {
-  sender: string;
-  recipient: string;
-  text: string;
-  timestamp: number;
-  read?: boolean;
-};
+import type { Message } from "../types/Message";
 
 function ChatModal({ children, onClose }) {
   const [position, setPosition] = useState({ x: 200, y: 100 });
@@ -107,55 +98,17 @@ export default function ChatPage() {
   const currentEmail = currentUser?.email || "";
   const targetEmail = typeof id === "string" ? id : "";
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Utilisation du hook useChat (API)
+  const { messages, loading, sendMessage } = useChat(currentEmail, targetEmail);
+
   const [newMessage, setNewMessage] = useState("");
   const [open, setOpen] = useState(true);
 
-  // Charger la conversation depuis localStorage
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("conversations") || "{}");
-    const convoKey = getConversationKey(currentEmail, targetEmail);
-    let msgs: Message[] = stored[convoKey] || [];
-    // Marquer comme lus tous les messages reçus non lus
-    let updated = false;
-    msgs = msgs.map((msg: Message) => {
-      if (msg.sender !== currentEmail && !msg.read) {
-        updated = true;
-        return { ...msg, read: true };
-      }
-      return msg;
-    });
-    if (updated) {
-      stored[convoKey] = msgs;
-      localStorage.setItem("conversations", JSON.stringify(stored));
-    }
-    setMessages(msgs);
-  }, [currentEmail, targetEmail]);
-
-  // Sauvegarde la conversation
-  const saveConversation = (msgs: Message[]) => {
-    const stored = JSON.parse(localStorage.getItem("conversations") || "{}");
-    const convoKey = getConversationKey(currentEmail, targetEmail);
-    stored[convoKey] = msgs;
-    localStorage.setItem("conversations", JSON.stringify(stored));
-  };
-
-  // Envoi d’un message
-  const handleSend = (e: React.FormEvent) => {
+  // Envoi d’un message via l’API
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-
-    const msg: Message = {
-      sender: currentUser.email,
-      recipient: targetEmail,
-      text: newMessage,
-      timestamp: Date.now(),
-      read: false,
-    };
-
-    const updated = [...messages, msg];
-    setMessages(updated);
-    saveConversation(updated);
+    await sendMessage(newMessage);
     setNewMessage("");
   };
 
@@ -185,27 +138,31 @@ export default function ChatPage() {
         </div>
         {/* Messages */}
         <div className="flex-1 p-4 bg-black overflow-y-auto">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`mb-3 flex ${
-                msg.sender === currentUser.email ? "justify-end" : "justify-start"
-              }`}
-            >
+          {loading ? (
+            <div className="text-white text-center">Chargement...</div>
+          ) : (
+            messages.map((msg: Message, i: number) => (
               <div
-                className={`px-3 py-2 rounded-lg max-w-xs ${
-                  msg.sender === currentUser.email
-                    ? "bg-yellow-100 text-black"
-                    : "bg-black border text-white"
+                key={i}
+                className={`mb-3 flex ${
+                  msg.sender === currentUser.email ? "justify-end" : "justify-start"
                 }`}
               >
-                <p>{msg.text}</p>
-                <span className="text-[10px] block mt-1 text-gray-400">
-                  {new Date(msg.timestamp).toLocaleTimeString()}
-                </span>
+                <div
+                  className={`px-3 py-2 rounded-lg max-w-xs ${
+                    msg.sender === currentUser.email
+                      ? "bg-yellow-100 text-black"
+                      : "bg-black border text-white"
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <span className="text-[10px] block mt-1 text-gray-400">
+                    {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ""}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
         {/* Formulaire */}
         <form
@@ -232,7 +189,4 @@ export default function ChatPage() {
   );
 }
 
-// 🔑 Générer une clé unique pour identifier la conversation
-function getConversationKey(email1: string, email2: string) {
-  return [email1, email2].sort().join("_");
-}
+

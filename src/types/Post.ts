@@ -1,30 +1,18 @@
+import type { User } from "./User";
+import type { Comment } from "./Comment";
+
 export interface Post {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar: string;
-  userProfession: string;
-  isOnline: boolean;
-  mediaUrl: string;
-  mediaType: 'image' | 'video';
-  caption: string;
-  createdAt: Date;
-  likes: number;
-  comments: Comment[];
-  shares: number;
-  isLiked: boolean;
-  isOwnPost: boolean;
-  likedBy: string[];
+  _id?: string;
+  auteur: string | User; // id ou objet User
+  contenu: string;
+  image?: string;
+  likes: string[]; // tableau d'id User
+  partages: string[]; // tableau d'id User
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface Comment {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar: string;
-  content: string;
-  createdAt: Date;
-}
+// L'interface Comment est importée depuis ./Comment.ts
 
 export interface PostInteraction {
   postId: string;

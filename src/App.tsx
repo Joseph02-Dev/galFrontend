@@ -3,18 +3,10 @@ import {
   Routes,
   Route,
   Navigate,
-  useLocation,
 } from "react-router-dom";
 import ChatPage from "./pages/usersChat";
 import UsersPage from "./pages/usersPage";
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const user = localStorage.getItem("user");
-  const location = useLocation();
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-  return <>{children}</>;
-}
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
@@ -36,64 +28,68 @@ export default function App() {
         <Route
           path="/users"
           element={
-            <RequireAuth>
+            <ProtectedRoute>
               <MainLayout>
                 <UsersPage />
               </MainLayout>
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/chat/:id"
           element={
-            <MainLayout>
-              <ChatPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <ChatPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/"
           element={
-            <RequireAuth>
+            <ProtectedRoute>
               <MainLayout>
                 <Home />
               </MainLayout>
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/profile"
           element={
-            <RequireAuth>
+            <ProtectedRoute>
               <MainLayout>
                 <Profile />
               </MainLayout>
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/market"
           element={
-            <RequireAuth>
+            <ProtectedRoute>
               <MainLayout>
                 <Market />
               </MainLayout>
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/training"
           element={
-            <RequireAuth>
+            <ProtectedRoute>
               <MainLayout>
                 <Training />
               </MainLayout>
-            </RequireAuth>
+            </ProtectedRoute>
           }
         />
 
         {/* Redirection si non connecté */}
+        {/* Redirection catch-all vers /login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

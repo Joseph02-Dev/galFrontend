@@ -1,7 +1,16 @@
+import { useUser } from "../context/useUser";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 
 export default function RegisterPage() {
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
   // Images illustrant l'agritech
   const images = [
     '/assets/agri1.jpg',
@@ -16,14 +25,14 @@ export default function RegisterPage() {
     }, 3500);
     return () => clearInterval(timer);
   }, [images.length]);
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    prenom: "",
+    nom: "",
     email: "",
-    password: "",
-    country: "",
-    city: "",
+    motDePasse: "",
+    pays: "",
+    ville: "",
     phoneCode: "+224", // indicatif par défaut
     phoneNumber: "",
     profileImage: null as File | null,
@@ -43,29 +52,44 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    try {
+      // Prépare les données à envoyer (FormData si image)
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+  if (value && key !== "profileImage") data.append(key, value as string | Blob);
+      });
+      if (formData.profileImage) {
+        data.append("profileImage", formData.profileImage);
+      }
 
-    // On regroupe l'indicatif et le numéro
-    const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
-
-    const user = {
-      ...formData,
-      phone: fullPhone,
-      profileImage: preview, // on garde l’URL pour affichage
-    };
-
-    // Récupérer la liste existante des utilisateurs
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    users.push(user);
-    localStorage.setItem("users", JSON.stringify(users));
-    localStorage.setItem("user", JSON.stringify(user));
-
-    navigate("/"); // Redirection après inscription
+      await api.post("/users/register", data, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      // Après création, tenter de se connecter (backend ne renvoie pas nécessairement token)
+      const loginRes = await api.post("/users/login", { email: formData.email, motDePasse: formData.motDePasse });
+      localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+      localStorage.setItem("token", loginRes.data.token);
+      setUser(loginRes.data.user);
+      navigate("/");
+    } catch (err) {
+      if (err && typeof err === "object" && err !== null && "response" in err) {
+        setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+      } else {
+        setError("Erreur lors de l'inscription. Veuillez réessayer.");
+      }
+    }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-gradient-to-br from-green-50 to-green-200" data-theme="night">
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded shadow max-w-md mx-auto">
+          {error}
+        </div>
+      )}
       {/* Carrousel d'images */}
       <div className="hidden md:flex flex-col items-center justify-center w-1/2 h-full p-8">
         <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl">
@@ -113,18 +137,18 @@ export default function RegisterPage() {
           <div className="flex gap-2">
             <input
               type="text"
-              name="firstName"
+              name="prenom"
               placeholder="Prénom"
-              value={formData.firstName}
+              value={formData.prenom}
               onChange={handleChange}
               className="w-1/2 border p-2 rounded"
               required
             />
             <input
               type="text"
-              name="lastName"
+              name="nom"
               placeholder="Nom"
-              value={formData.lastName}
+              value={formData.nom}
               onChange={handleChange}
               className="w-1/2 border p-2 rounded"
               required
@@ -145,9 +169,9 @@ export default function RegisterPage() {
           {/* Mot de passe */}
           <input
             type="password"
-            name="password"
+            name="motDePasse"
             placeholder="Mot de passe"
-            value={formData.password}
+            value={formData.motDePasse}
             onChange={handleChange}
             className="w-full border p-2 rounded"
             required
@@ -181,8 +205,8 @@ export default function RegisterPage() {
 
           {/* Pays */}
           <select
-            name="country"
-            value={formData.country}
+            name="pays"
+            value={formData.pays}
             onChange={handleChange}
             className="w-full border p-2 rounded"
             required
@@ -197,9 +221,9 @@ export default function RegisterPage() {
           {/* Ville */}
           <input
             type="text"
-            name="city"
+            name="ville"
             placeholder="Ville actuelle"
-            value={formData.city}
+            value={formData.ville}
             onChange={handleChange}
             className="w-full border p-2 rounded"
             required

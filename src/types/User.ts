@@ -1,10 +1,14 @@
 export interface User {
-  id: string;
+  _id?: string; // ou id selon la réponse de l'API
+  prenom: string;
+  nom: string;
   email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  profileImage: string;
-  followers: string[]; // tableau d'id utilisateur
-  following: string[]; // tableau d'id utilisateur
+  motDePasse: string;
+  pays: string;
+  ville: string;
+  phoneCode: string;
+  phoneNumber: string;
+  profileImage?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

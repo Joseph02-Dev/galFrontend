@@ -33,10 +33,12 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }: Cr
     
     if (!mediaFile) return;
 
+    // Récupérer l'utilisateur connecté
+    const user = JSON.parse(localStorage.getItem("user") || "null");
     const newStory: Omit<Story, 'id' | 'createdAt' | 'expiresAt'> = {
-      userId: 'currentUser',
-      username: 'Votre nom',
-      userAvatar: 'https://i.pravatar.cc/60?img=12',
+      userId: user?._id || user?.id || 'currentUser',
+      username: user ? `${user.prenom} ${user.nom}` : 'Votre nom',
+      userAvatar: user?.profileImage || '',
       mediaUrl: mediaPreview,
       mediaType,
       caption: caption.trim() || undefined,

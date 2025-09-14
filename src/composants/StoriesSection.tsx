@@ -136,7 +136,7 @@ export default function StoriesSection() {
           {/* Stories existantes - groupées par utilisateur */}
           {getStoriesGroupedByUser().map((userGroup) => (
             <div
-              key={userGroup.userId}
+              key={`userGroup-${userGroup.userId}`}
               onClick={() => handleStoryClick(userGroup.userId)}
               className="flex-shrink-0 w-10 xs:w-12 sm:w-14 text-center cursor-pointer group"
             >

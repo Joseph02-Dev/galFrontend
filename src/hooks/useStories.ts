@@ -1,24 +1,13 @@
 import { useState } from 'react';
 import type { Story } from '../types/Story';
-import { mockStories } from '../data/stories';
 
 export function useStories() {
-  const [stories, setStories] = useState<Story[]>(mockStories);
+  // À remplacer par un fetch backend
+  const [stories, setStories] = useState<Story[]>([]);
 
   const addStory = (partialStory: Partial<Story>) => {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const story: Story = {
-      id: Date.now().toString(),
-      userId: user?.id || partialStory.userId || "1",
-      username: user ? `${user.firstName} ${user.lastName}` : partialStory.username || "Utilisateur",
-      userAvatar: user?.profileImage || partialStory.userAvatar || "https://i.pravatar.cc/150?img=3",
-      mediaUrl: partialStory.mediaUrl || "",
-      mediaType: partialStory.mediaType || "image",
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      isOwnStory: true,
-    };
-    setStories([story, ...stories]);
+    // À remplacer par un POST backend
+    // setStories([story, ...stories]);
   };
 
   // Fonction pour obtenir les stories d'un utilisateur spécifique
